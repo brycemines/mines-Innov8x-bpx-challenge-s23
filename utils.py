@@ -13,7 +13,7 @@ def plot_ts_open_hatch(dfi=None, fac_id=None, t_drone_open_hatch=None, plot_dir=
     fac_id: facility id
     fac_name: facility name
     plot_dir: directory to save the figure
-    """
+    """ 
     assert isinstance(dfi, pd.DataFrame)
     assert 'timestamp' in dfi
     assert 'pressure_osi' in dfi
