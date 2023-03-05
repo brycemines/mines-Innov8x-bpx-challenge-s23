@@ -90,8 +90,8 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None):
         t_stop = t_drone_open_hatch + timedelta(days=30)
 
         df_thp_facility = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
-        if not df_thp_facility.empty:
-            temp.append(df_thp_facility)
+
+        temp.append(df_thp_facility)
 
         # get work order data for facility
 
