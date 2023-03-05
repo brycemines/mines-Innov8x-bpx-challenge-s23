@@ -58,7 +58,37 @@ def plot_prediction_validation(df, df_pred, facility_id):
 
     return fig
 
-def summary(drone = None, form = None, thp = None, workorder = None, Facility = None, period = None):
+
+from datetime import timedelta
+
+def summary(drone = None, form = None, thp = None, workorder = None, id = None, period = None):
     #we need to make the in-range thp data and get the drone detection time
+
+    # sort time series data by facility id
+    df_thp_facility = thp[thp.FACILITY_ID==id]
+
+    # sort drone data by facility id
+    df_drone_facility = drone[drone.FACILITY_ID==id]
+    arr_thp_at_drone = []
+    for i in range(df_drone_facility.nunique().DTM):
+        df_drone_facility.iloc[i]
+        t_drone_open_hatch = df_drone_facility.DTM.iloc[i] # in this case, only one open hatch event detected for this facility
+        t_drone_open_hatch = pd.to_datetime(t_drone_open_hatch)
+
+        t_strt = t_drone_open_hatch - timedelta(days=30)
+        t_stop = t_drone_open_hatch + timedelta(days=30)
+
+        t_df_thp = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
+        if t_df_thp.nunique().DTM != 0:
+            arr_thp_at_drone.append(t_df_thp)
+
+    if len(arr_thp_at_drone) == 0:
+        return
+    
+    arr_open_hatch_events_manual = [] # id, open manual, close manual, open drone, close drone, open workorder, close workorder, open form, close data
+    
+    for df in arr_thp_at_drone:
+        pass
+        
 
     return 
