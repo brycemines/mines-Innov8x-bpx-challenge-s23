@@ -4,6 +4,8 @@
 from plotly.subplots import make_subplots
 import plotly.express as px
 import pandas as pd
+import numpy as np
+from scipy import stats
 
 def plot_ts_open_hatch(dfi=None, fac_id=None, t_drone_open_hatch=None, plot_dir=None):
     """ 
@@ -61,12 +63,20 @@ def plot_prediction_validation(df, df_pred, facility_id):
 
 from datetime import timedelta
 
-def summary(drone = None, form = None, thp = None, workorder = None, id = None):
-    #we need to make the in-range thp data and get the drone detection time
-
+def summary(drone = None, form = None, thp = None, workorder = None, id = None, start = 30, stop = 30, outliers = False):
+    '''
+    summary() is a convenience function to wrap all of the data manipulation that was done in the instructions.ipynb. 
+    The function allows us to input drone, form, thp, workorder, and facility id.
+    The function looks through the drone data to find open hatches at the facility then loop through and provide the thp, workorder
+    and forms data relavent to that open hatch event. The function takes extra parameters like start and stop which allows us to 
+    adjust the relavent time scope for the thp, workorder, and forms data for a given open hatch event. The outliers allows us
+    to filter through the thp data and remove pressure outlier data if observed.
+    '''
     # sort time series data by facility id
     df_thp_facility = thp[thp.FACILITY_ID==id]
     df_thp_facility.timestamp = pd.to_datetime(df_thp_facility.timestamp)
+    if outliers:
+        df_thp_facility = df_thp_facility[(np.abs(stats.zscore(df_thp_facility['pressure_osi'])) < 3)]
 
     # sort drone data by facility id
     df_drone_facility = drone[drone.FACILITY_ID==id]
@@ -86,8 +96,8 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None):
         t_drone_open_hatch = pd.to_datetime(t_drone_open_hatch)
         temp.append(t_drone_open_hatch)
 
-        t_strt = t_drone_open_hatch - timedelta(days=30)
-        t_stop = t_drone_open_hatch + timedelta(days=30)
+        t_strt = t_drone_open_hatch - timedelta(days=start)
+        t_stop = t_drone_open_hatch + timedelta(days=stop)
 
         df_thp_facility = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
 
@@ -112,9 +122,11 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None):
         ]
         temp.append(df_workorder_facility)
 
+        # get relavent forms data in the defined period 
         df_form_facility = df_form_facility[df_form_facility.SubmitDate.between(t_strt, t_stop)]
         temp.append(df_form_facility)
 
+        #create a key value pair for a given drone event with the value being thp, workorder and forms data
         arr_thp_at_drone[i] = temp
         temp = []
 
