@@ -66,6 +66,7 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None):
 
     # sort time series data by facility id
     df_thp_facility = thp[thp.FACILITY_ID==id]
+    df_thp_facility.timestamp = pd.to_datetime(df_thp_facility.timestamp)
 
     # sort drone data by facility id
     df_drone_facility = drone[drone.FACILITY_ID==id]
@@ -83,13 +84,14 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None):
         df_drone_facility.iloc[i]
         t_drone_open_hatch = df_drone_facility.DTM.iloc[i] # in this case, only one open hatch event detected for this facility
         t_drone_open_hatch = pd.to_datetime(t_drone_open_hatch)
+        temp.append(t_drone_open_hatch)
 
         t_strt = t_drone_open_hatch - timedelta(days=30)
         t_stop = t_drone_open_hatch + timedelta(days=30)
 
-        t_df_thp = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
-        if not t_df_thp.empty:
-            temp.append(t_df_thp)
+        df_thp_facility = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
+        if not df_thp_facility.empty:
+            temp.append(df_thp_facility)
 
         # get work order data for facility
 
@@ -110,10 +112,10 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None):
         ]
         temp.append(df_workorder_facility)
 
-        df_form_facility = df_form_facility[df_drone_facility.SubmitDate.between(t_strt, t_stop)]
-        temp.append(df_drone_facility)
+        df_form_facility = df_form_facility[df_form_facility.SubmitDate.between(t_strt, t_stop)]
+        temp.append(df_form_facility)
 
-        arr_thp_at_drone[t_drone_open_hatch] = temp
+        arr_thp_at_drone[i] = temp
         temp = []
 
     if len(arr_thp_at_drone) == 0:
