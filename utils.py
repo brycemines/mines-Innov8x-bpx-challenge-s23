@@ -61,7 +61,7 @@ def plot_prediction_validation(df, df_pred, facility_id):
 
 from datetime import timedelta
 
-def summary(drone = None, form = None, thp = None, workorder = None, id = None, period = None):
+def summary(drone = None, form = None, thp = None, workorder = None, id = None):
     #we need to make the in-range thp data and get the drone detection time
 
     # sort time series data by facility id
@@ -69,8 +69,17 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None, 
 
     # sort drone data by facility id
     df_drone_facility = drone[drone.FACILITY_ID==id]
-    arr_thp_at_drone = []
-    for i in range(df_drone_facility.nunique().DTM):
+
+    # sort workorder data by facility id
+    df_workorder_facility = workorder[workorder.facility_id == id]
+
+    # sort form data by facility id
+    df_form_facility = form[form.FACILITY_ID==id]
+    df_form_facility.SubmitDate = pd.to_datetime(df_form_facility.SubmitDate)
+
+    arr_thp_at_drone = {}
+    temp = []
+    for i in range(df_drone_facility.DTM.nunique()):
         df_drone_facility.iloc[i]
         t_drone_open_hatch = df_drone_facility.DTM.iloc[i] # in this case, only one open hatch event detected for this facility
         t_drone_open_hatch = pd.to_datetime(t_drone_open_hatch)
@@ -79,16 +88,35 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None, 
         t_stop = t_drone_open_hatch + timedelta(days=30)
 
         t_df_thp = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
-        if t_df_thp.nunique().DTM != 0:
-            arr_thp_at_drone.append(t_df_thp)
+        if not t_df_thp.empty:
+            temp.append(t_df_thp)
+
+        # get work order data for facility
+
+        # filter rows containing key word 'hatch', keyword could be 'thief' or misspelled words
+        df_workorder_facility = df_workorder_facility[(df_workorder_facility.workOrderDescription.fillna('').str.lower().str.contains('hatch'))
+                        | ((df_workorder_facility.workOrderResolutionDescription.fillna('').str.lower().str.contains('hatch')))
+        ]
+
+        # filter rows with dates within drone detected open hatch date
+        df_workorder_facility.created_date = pd.to_datetime(df_workorder_facility.created_date)
+        df_workorder_facility.workOrderActualsStartDate = pd.to_datetime(df_workorder_facility.workOrderActualsStartDate)
+        df_workorder_facility.workOrderActualsEndDate = pd.to_datetime(df_workorder_facility.workOrderActualsEndDate)
+
+        df_workorder_facility = df_workorder_facility[
+            df_workorder_facility.created_date.between(t_strt, t_stop)
+            | df_workorder_facility.workOrderActualsStartDate.between(t_strt, t_stop)
+            | df_workorder_facility.workOrderActualsEndDate.between(t_strt, t_stop)
+        ]
+        temp.append(df_workorder_facility)
+
+        df_form_facility = df_form_facility[df_drone_facility.SubmitDate.between(t_strt, t_stop)]
+        temp.append(df_drone_facility)
+
+        arr_thp_at_drone[t_drone_open_hatch] = temp
+        temp = []
 
     if len(arr_thp_at_drone) == 0:
-        return
+        return (id, 'invalid')
     
-    arr_open_hatch_events_manual = [] # id, open manual, close manual, open drone, close drone, open workorder, close workorder, open form, close data
-    
-    for df in arr_thp_at_drone:
-        pass
-        
-
-    return 
+    return arr_thp_at_drone
