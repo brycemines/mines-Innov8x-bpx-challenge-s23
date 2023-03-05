@@ -57,3 +57,8 @@ def plot_prediction_validation(df, df_pred, facility_id):
     fig.update_layout(title_text= f'Model predicted hatch status vs groud truth {facility_id}', height=900, width=1600, font=dict(size=16))
 
     return fig
+
+def summary(drone = None, form = None, thp = None, workorder = None, Facility = None, period = None):
+    #we need to make the in-range thp data and get the drone detection time
+
+    return 
