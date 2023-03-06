@@ -1,12 +1,33 @@
 import random 
 import pandas as pd 
 import numpy as np
+import statsmodels.api as sm
 
 def model_random(df, t_pred):
     # free feel to use data earlier than df.timestamp.min()
     # however, your model SHOULD NOT USE ANY DATA AFTER "t_pred"
     # if hatch "open" should return integer 1
     # if hacth "close" should return integer 0    
+
+    #implement this
+    '''
+    # Fit an ARIMA model to the time series data
+    model = sm.tsa.ARIMA(time_series_data, order=(p, d, q))
+    results = model.fit()
+
+    # Perform a likelihood ratio test on the residual errors
+    _, p_value, _, _ = sm.stats.diagnostic.het_goldfeldquandt(results.resid, results.model.exog)
+
+    # If the p-value is less than the desired significance level, there is a changepoint
+    if p_value < alpha:
+    print("Changepoint detected")
+    else:
+    print("No changepoint detected")
+    '''
+    #p is the order of auto
+
+    model = sm.tsa.ARIMA(df, order = (p, q, d))
+
     prob_open = random.random()
 
     return [random.choice([0, 1]), prob_open]
