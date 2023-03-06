@@ -99,9 +99,9 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None, 
         t_strt = t_drone_open_hatch - timedelta(days=start)
         t_stop = t_drone_open_hatch + timedelta(days=stop)
 
-        df_thp_facility = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
+        df_thp_i = df_thp_facility[df_thp_facility.timestamp.between(t_strt, t_stop)]
 
-        temp.append(df_thp_facility)
+        temp.append(df_thp_i)
 
         # get work order data for facility
 
@@ -129,6 +129,11 @@ def summary(drone = None, form = None, thp = None, workorder = None, id = None, 
         #create a key value pair for a given drone event with the value being thp, workorder and forms data
         arr_thp_at_drone[i] = temp
         temp = []
+
+        df_thp_facility = thp[thp.FACILITY_ID==id]
+        df_thp_facility.timestamp = pd.to_datetime(df_thp_facility.timestamp)
+        if outliers:
+            df_thp_facility = df_thp_facility[(np.abs(stats.zscore(df_thp_facility['pressure_osi'])) < 3)]
 
     if len(arr_thp_at_drone) == 0:
         return (id, 'invalid')
