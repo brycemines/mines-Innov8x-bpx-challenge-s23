@@ -1,7 +1,7 @@
 import random 
 import pandas as pd 
 import numpy as np
-import statsmodels.api as sm
+
 
 def model_random(df, t_pred):
     # free feel to use data earlier than df.timestamp.min()
@@ -9,41 +9,7 @@ def model_random(df, t_pred):
     # if hatch "open" should return integer 1
     # if hacth "close" should return integer 0    
 
-    '''
-    # Fit an ARIMA model to the time series data
-    model = sm.tsa.ARIMA(time_series_data, order=(p, d, q))
-    results = model.fit()
-
-    # Perform a likelihood ratio test on the residual errors
-    _, p_value, _, _ = sm.stats.diagnostic.het_goldfeldquandt(results.resid, results.model.exog)
-
-    # If the p-value is less than the desired significance level, there is a changepoint
-    if p_value < alpha:
-    print("Changepoint detected")
-    else:
-    print("No changepoint detected")
-    '''
     
-    #p is the order of autoregressive (AR) term
-    #conduct a Ljung-Box test to determine  whether any group of autocorrelations of a time series are different from zero
-    max_lag = 2*len(df.columns)/100
-    significance_level = 0.05
-
-    acf = sm.tsa.stattools.acf(df)
-    lbvalue, p_value = sm.stats.diagnostic.acorr_ljungbox(acf.resid, lags = max_lag, alpha = significance_level)
-
-    p_value_below_significance_level = p_value < significance_level
-    first_lag_below_significance_level = np.argmax(p_value_below_significance_level)
-
-    p = 1
-
-    #q is the ordering of the moving average (MA) term
-    q = 1
-
-    #d is the order of differencing
-    d = 1
-
-    model = sm.tsa.ARIMA(df, order = (p, q, d))
 
     prob_open = random.random()
 
